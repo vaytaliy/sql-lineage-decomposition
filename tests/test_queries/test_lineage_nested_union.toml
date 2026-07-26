@@ -1,0 +1,202 @@
+[in]
+
+sql = """
+SELECT customer_id, total_amount AS order_amount, NULL AS x
+FROM orders
+
+UNION
+
+SELECT customer_id, historical_amount AS order_amount, NULL AS x
+FROM archived_orders
+
+UNION
+
+SELECT
+    tbl3.joined_attr,
+    aliased_quer.tst,
+    aliased_quer.tst AS x
+FROM (
+    SELECT id, tst FROM a
+    UNION
+    SELECT id, tst2 FROM b
+) AS aliased_quer
+INNER JOIN tbl3 ON aliased_quer.id = tbl3.id
+"""
+
+[lineage_1]
+
+description = "Nested UNION with subquery and JOIN - lineage stops at STATEMENT/SUBQUERY boundaries"
+
+# RootHierarchy node id: 2 (right STATEMENT: subquery + JOIN branch)
+#   - SUBQUERY lineage for tst projected through aliased_quer
+#   - ROOT lineage for joined_attr from the JOINed tbl3
+# RootHierarchy node id: 3 (left-left STATEMENT: orders)
+#   - ROOT lineages for customer_id and total_amount
+# RootHierarchy node id: 4 (left-right STATEMENT: archived_orders)
+#   - ROOT lineages for customer_id and historical_amount
+# RootHierarchy node id: 6 (inner left STATEMENT: a)
+#   - ROOT lineages for id and tst
+# RootHierarchy node id: 7 (inner right STATEMENT: b)
+#   - ROOT lineages for id and tst2
+
+expected = """
+[
+    {
+        "container_name": "ID__SUBQUERY__aliased_quer",
+        "container_type": "SUBQUERY",
+        "attribute_value": "tst",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "tst",
+                "function_str": null,
+                "next": []
+            },
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "x",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    },
+    {
+        "container_name": "ID__ROOT__tbl3",
+        "container_type": "ROOT",
+        "attribute_value": "joined_attr",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "joined_attr",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    },
+    {
+        "container_name": "ID__ROOT__orders",
+        "container_type": "ROOT",
+        "attribute_value": "customer_id",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "customer_id",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    },
+    {
+        "container_name": "ID__ROOT__orders",
+        "container_type": "ROOT",
+        "attribute_value": "total_amount",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "order_amount",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    },
+    {
+        "container_name": "ID__ROOT__archived_orders",
+        "container_type": "ROOT",
+        "attribute_value": "customer_id",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "customer_id",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    },
+    {
+        "container_name": "ID__ROOT__archived_orders",
+        "container_type": "ROOT",
+        "attribute_value": "historical_amount",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "order_amount",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    },
+    {
+        "container_name": "ID__ROOT__a",
+        "container_type": "ROOT",
+        "attribute_value": "id",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "id",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    },
+    {
+        "container_name": "ID__ROOT__a",
+        "container_type": "ROOT",
+        "attribute_value": "tst",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "tst",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    },
+    {
+        "container_name": "ID__ROOT__b",
+        "container_type": "ROOT",
+        "attribute_value": "id",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "id",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    },
+    {
+        "container_name": "ID__ROOT__b",
+        "container_type": "ROOT",
+        "attribute_value": "tst2",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "tst2",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    }
+]
+"""

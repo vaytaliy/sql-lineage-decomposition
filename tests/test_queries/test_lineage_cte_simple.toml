@@ -1,0 +1,61 @@
+[in]
+
+sql = """
+WITH cte AS (SELECT id, name FROM users)
+SELECT id, name FROM cte
+"""
+
+[lineage_1]
+
+description = "Simple CTE inlined as SUBSELECT with full lineage"
+
+expected = """
+[
+    {
+        "container_name": "ID__ROOT__users",
+        "container_type": "ROOT",
+        "attribute_value": "id",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__SUBQUERY__cte",
+                "container_type": "SUBQUERY",
+                "attribute_value": "id",
+                "function_str": null,
+                "next": [
+                    {
+                        "container_name": "ID__STATEMENT__#none#",
+                        "container_type": "STATEMENT",
+                        "attribute_value": "id",
+                        "function_str": null,
+                        "next": []
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "container_name": "ID__ROOT__users",
+        "container_type": "ROOT",
+        "attribute_value": "name",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__SUBQUERY__cte",
+                "container_type": "SUBQUERY",
+                "attribute_value": "name",
+                "function_str": null,
+                "next": [
+                    {
+                        "container_name": "ID__STATEMENT__#none#",
+                        "container_type": "STATEMENT",
+                        "attribute_value": "name",
+                        "function_str": null,
+                        "next": []
+                    }
+                ]
+            }
+        ]
+    }
+]
+"""

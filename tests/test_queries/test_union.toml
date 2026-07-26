@@ -1,0 +1,108 @@
+[in]
+
+sql = """
+SELECT customer_id, total_amount AS order_amount FROM orders
+UNION
+SELECT customer_id, historical_amount AS order_amount FROM archived_orders
+"""
+
+[test_1]
+
+description = "UNION of two SELECT statements"
+
+expected = """
+{
+    "id": 0,
+    "parent_id": null,
+    "node_type": "SET_OPERATOR",
+    "value": "UNION",
+    "children": [
+        {
+            "id": 1,
+            "parent_id": 0,
+            "node_type": "STATEMENT",
+            "children": [
+                {
+                    "id": 2,
+                    "parent_id": 1,
+                    "node_type": "ATTRIBUTE",
+                    "value": "customer_id",
+                    "table_alias": "orders"
+                },
+                {
+                    "id": 3,
+                    "parent_id": 1,
+                    "node_type": "ATTRIBUTE",
+                    "value": "total_amount",
+                    "alias": "order_amount",
+                    "table_alias": "orders"
+                },
+                {
+                    "id": 4,
+                    "parent_id": 1,
+                    "node_type": "TABLE",
+                    "value": "orders",
+                    "alias": "",
+                    "children": [
+                        {
+                            "id": 5,
+                            "parent_id": 4,
+                            "node_type": "ROOT_ATTRIBUTE",
+                            "value": "customer_id"
+                        },
+                        {
+                            "id": 6,
+                            "parent_id": 4,
+                            "node_type": "ROOT_ATTRIBUTE",
+                            "value": "total_amount"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": 7,
+            "parent_id": 0,
+            "node_type": "STATEMENT",
+            "children": [
+                {
+                    "id": 8,
+                    "parent_id": 7,
+                    "node_type": "ATTRIBUTE",
+                    "value": "customer_id",
+                    "table_alias": "archived_orders"
+                },
+                {
+                    "id": 9,
+                    "parent_id": 7,
+                    "node_type": "ATTRIBUTE",
+                    "value": "historical_amount",
+                    "alias": "order_amount",
+                    "table_alias": "archived_orders"
+                },
+                {
+                    "id": 10,
+                    "parent_id": 7,
+                    "node_type": "TABLE",
+                    "value": "archived_orders",
+                    "alias": "",
+                    "children": [
+                        {
+                            "id": 11,
+                            "parent_id": 10,
+                            "node_type": "ROOT_ATTRIBUTE",
+                            "value": "customer_id"
+                        },
+                        {
+                            "id": 12,
+                            "parent_id": 10,
+                            "node_type": "ROOT_ATTRIBUTE",
+                            "value": "historical_amount"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
+"""

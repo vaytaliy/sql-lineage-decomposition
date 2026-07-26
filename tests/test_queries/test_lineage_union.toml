@@ -1,0 +1,76 @@
+[in]
+
+sql = """
+SELECT customer_id, total_amount AS order_amount FROM orders
+UNION
+SELECT customer_id, historical_amount AS order_amount FROM archived_orders
+"""
+
+[lineage_1]
+
+description = "UNION lineage - each branch stops at its STATEMENT"
+
+expected = """
+[
+    {
+        "container_name": "ID__ROOT__orders",
+        "container_type": "ROOT",
+        "attribute_value": "customer_id",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "customer_id",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    },
+    {
+        "container_name": "ID__ROOT__orders",
+        "container_type": "ROOT",
+        "attribute_value": "total_amount",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "order_amount",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    },
+    {
+        "container_name": "ID__ROOT__archived_orders",
+        "container_type": "ROOT",
+        "attribute_value": "customer_id",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "customer_id",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    },
+    {
+        "container_name": "ID__ROOT__archived_orders",
+        "container_type": "ROOT",
+        "attribute_value": "historical_amount",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "order_amount",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    }
+]
+"""

@@ -1,0 +1,247 @@
+[in]
+
+sql = """
+SELECT customer_id, total_amount AS order_amount, NULL AS x
+FROM orders
+
+UNION
+
+SELECT customer_id, historical_amount AS order_amount, NULL AS x
+FROM archived_orders
+
+UNION
+
+SELECT
+    tbl3.joined_attr,
+    aliased_quer.tst,
+    aliased_quer.tst AS x
+FROM (
+    SELECT id, tst FROM a
+    UNION
+    SELECT id, tst2 FROM b
+) AS aliased_quer
+INNER JOIN tbl3 ON aliased_quer.id = tbl3.id
+"""
+
+[collapse_1]
+
+description = "Nested UNION - inner branches converge by position; subquery branches stitch into the alias"
+
+expected = """
+[
+  {
+    "container_name": "ID__ROOT__orders",
+    "container_type": "ROOT",
+    "attribute_value": "customer_id",
+    "function_str": null,
+    "next": [
+      {
+        "container_name": "ID__STATEMENT__#none#",
+        "container_type": "STATEMENT",
+        "attribute_value": "customer_id",
+        "function_str": null,
+        "next": []
+      }
+    ]
+  },
+  {
+    "container_name": "ID__ROOT__orders",
+    "container_type": "ROOT",
+    "attribute_value": "total_amount",
+    "function_str": null,
+    "next": [
+      {
+        "container_name": "ID__STATEMENT__#none#",
+        "container_type": "STATEMENT",
+        "attribute_value": "order_amount",
+        "function_str": null,
+        "next": []
+      }
+    ]
+  },
+  {
+    "container_name": "ID__ROOT__archived_orders",
+    "container_type": "ROOT",
+    "attribute_value": "customer_id",
+    "function_str": null,
+    "next": [
+      {
+        "container_name": "ID__STATEMENT__#none#",
+        "container_type": "STATEMENT",
+        "attribute_value": "customer_id",
+        "function_str": null,
+        "next": [
+          {
+            "container_name": "ID__STATEMENT__#none#",
+            "container_type": "STATEMENT",
+            "attribute_value": "customer_id",
+            "function_str": null,
+            "next": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "container_name": "ID__ROOT__archived_orders",
+    "container_type": "ROOT",
+    "attribute_value": "historical_amount",
+    "function_str": null,
+    "next": [
+      {
+        "container_name": "ID__STATEMENT__#none#",
+        "container_type": "STATEMENT",
+        "attribute_value": "order_amount",
+        "function_str": null,
+        "next": [
+          {
+            "container_name": "ID__STATEMENT__#none#",
+            "container_type": "STATEMENT",
+            "attribute_value": "order_amount",
+            "function_str": null,
+            "next": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "container_name": "ID__ROOT__a",
+    "container_type": "ROOT",
+    "attribute_value": "id",
+    "function_str": null,
+    "next": [
+      {
+        "container_name": "ID__STATEMENT__#none#",
+        "container_type": "STATEMENT",
+        "attribute_value": "id",
+        "function_str": null,
+        "next": [
+          {
+            "container_name": "ID__STATEMENT__#none#",
+            "container_type": "STATEMENT",
+            "attribute_value": "customer_id",
+            "function_str": null,
+            "next": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "container_name": "ID__ROOT__a",
+    "container_type": "ROOT",
+    "attribute_value": "tst",
+    "function_str": null,
+    "next": [
+      {
+        "container_name": "ID__STATEMENT__#none#",
+        "container_type": "STATEMENT",
+        "attribute_value": "tst",
+        "function_str": null,
+        "next": [
+          {
+            "container_name": "ID__SUBQUERY__aliased_quer",
+            "container_type": "SUBQUERY",
+            "attribute_value": "tst",
+            "function_str": null,
+            "next": [
+              {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "tst",
+                "function_str": null,
+                "next": [
+                  {
+                    "container_name": "ID__STATEMENT__#none#",
+                    "container_type": "STATEMENT",
+                    "attribute_value": "order_amount",
+                    "function_str": null,
+                    "next": []
+                  }
+                ]
+              },
+              {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "x",
+                "function_str": null,
+                "next": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "container_name": "ID__ROOT__b",
+    "container_type": "ROOT",
+    "attribute_value": "id",
+    "function_str": null,
+    "next": [
+      {
+        "container_name": "ID__STATEMENT__#none#",
+        "container_type": "STATEMENT",
+        "attribute_value": "id",
+        "function_str": null,
+        "next": [
+          {
+            "container_name": "ID__STATEMENT__#none#",
+            "container_type": "STATEMENT",
+            "attribute_value": "customer_id",
+            "function_str": null,
+            "next": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "container_name": "ID__ROOT__b",
+    "container_type": "ROOT",
+    "attribute_value": "tst2",
+    "function_str": null,
+    "next": [
+      {
+        "container_name": "ID__STATEMENT__#none#",
+        "container_type": "STATEMENT",
+        "attribute_value": "tst2",
+        "function_str": null,
+        "next": [
+          {
+            "container_name": "ID__STATEMENT__#none#",
+            "container_type": "STATEMENT",
+            "attribute_value": "order_amount",
+            "function_str": null,
+            "next": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "container_name": "ID__ROOT__tbl3",
+    "container_type": "ROOT",
+    "attribute_value": "joined_attr",
+    "function_str": null,
+    "next": [
+      {
+        "container_name": "ID__STATEMENT__#none#",
+        "container_type": "STATEMENT",
+        "attribute_value": "joined_attr",
+        "function_str": null,
+        "next": [
+          {
+            "container_name": "ID__STATEMENT__#none#",
+            "container_type": "STATEMENT",
+            "attribute_value": "customer_id",
+            "function_str": null,
+            "next": []
+          }
+        ]
+      }
+    ]
+  }
+]
+"""

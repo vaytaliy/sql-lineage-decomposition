@@ -1,0 +1,189 @@
+[in]
+
+sql = """
+SELECT a, b
+FROM tst1
+UNION ALL
+SELECT c, d FROM tst1
+UNION ALL
+SELECT k, x FROM tst2
+UNION ALL
+SELECT s, l FROM tst3
+"""
+
+[collapse_1]
+
+description = "Flat UNION ALL with different aliases converges by column position to the leftmost output names"
+
+expected = """
+[
+  {
+    "container_name": "ID__ROOT__tst1",
+    "container_type": "ROOT",
+    "attribute_value": "a",
+    "function_str": null,
+    "next": [
+      {
+        "container_name": "ID__STATEMENT__#none#",
+        "container_type": "STATEMENT",
+        "attribute_value": "a",
+        "function_str": null,
+        "next": []
+      }
+    ]
+  },
+  {
+    "container_name": "ID__ROOT__tst1",
+    "container_type": "ROOT",
+    "attribute_value": "b",
+    "function_str": null,
+    "next": [
+      {
+        "container_name": "ID__STATEMENT__#none#",
+        "container_type": "STATEMENT",
+        "attribute_value": "b",
+        "function_str": null,
+        "next": []
+      }
+    ]
+  },
+  {
+    "container_name": "ID__ROOT__tst1",
+    "container_type": "ROOT",
+    "attribute_value": "c",
+    "function_str": null,
+    "next": [
+      {
+        "container_name": "ID__STATEMENT__#none#",
+        "container_type": "STATEMENT",
+        "attribute_value": "c",
+        "function_str": null,
+        "next": [
+          {
+            "container_name": "ID__STATEMENT__#none#",
+            "container_type": "STATEMENT",
+            "attribute_value": "a",
+            "function_str": null,
+            "next": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "container_name": "ID__ROOT__tst1",
+    "container_type": "ROOT",
+    "attribute_value": "d",
+    "function_str": null,
+    "next": [
+      {
+        "container_name": "ID__STATEMENT__#none#",
+        "container_type": "STATEMENT",
+        "attribute_value": "d",
+        "function_str": null,
+        "next": [
+          {
+            "container_name": "ID__STATEMENT__#none#",
+            "container_type": "STATEMENT",
+            "attribute_value": "b",
+            "function_str": null,
+            "next": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "container_name": "ID__ROOT__tst2",
+    "container_type": "ROOT",
+    "attribute_value": "k",
+    "function_str": null,
+    "next": [
+      {
+        "container_name": "ID__STATEMENT__#none#",
+        "container_type": "STATEMENT",
+        "attribute_value": "k",
+        "function_str": null,
+        "next": [
+          {
+            "container_name": "ID__STATEMENT__#none#",
+            "container_type": "STATEMENT",
+            "attribute_value": "a",
+            "function_str": null,
+            "next": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "container_name": "ID__ROOT__tst2",
+    "container_type": "ROOT",
+    "attribute_value": "x",
+    "function_str": null,
+    "next": [
+      {
+        "container_name": "ID__STATEMENT__#none#",
+        "container_type": "STATEMENT",
+        "attribute_value": "x",
+        "function_str": null,
+        "next": [
+          {
+            "container_name": "ID__STATEMENT__#none#",
+            "container_type": "STATEMENT",
+            "attribute_value": "b",
+            "function_str": null,
+            "next": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "container_name": "ID__ROOT__tst3",
+    "container_type": "ROOT",
+    "attribute_value": "l",
+    "function_str": null,
+    "next": [
+      {
+        "container_name": "ID__STATEMENT__#none#",
+        "container_type": "STATEMENT",
+        "attribute_value": "l",
+        "function_str": null,
+        "next": [
+          {
+            "container_name": "ID__STATEMENT__#none#",
+            "container_type": "STATEMENT",
+            "attribute_value": "b",
+            "function_str": null,
+            "next": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "container_name": "ID__ROOT__tst3",
+    "container_type": "ROOT",
+    "attribute_value": "s",
+    "function_str": null,
+    "next": [
+      {
+        "container_name": "ID__STATEMENT__#none#",
+        "container_type": "STATEMENT",
+        "attribute_value": "s",
+        "function_str": null,
+        "next": [
+          {
+            "container_name": "ID__STATEMENT__#none#",
+            "container_type": "STATEMENT",
+            "attribute_value": "a",
+            "function_str": null,
+            "next": []
+          }
+        ]
+      }
+    ]
+  }
+]
+"""

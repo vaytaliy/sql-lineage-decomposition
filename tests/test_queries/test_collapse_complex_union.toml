@@ -1,0 +1,240 @@
+[in]
+
+sql = """
+SELECT 
+        all_tx.customer_id,
+        all_tx.amount AS revenue,
+        c.customer_name
+    FROM (
+        SELECT customer_id, total_amount AS amount FROM active_orders
+        UNION ALL
+        SELECT customer_id, historical_amount AS amount FROM archived_orders
+    ) all_tx
+    INNER JOIN customers c 
+        ON all_tx.customer_id = c.id
+
+    UNION ALL
+
+    SELECT 
+        b2b.corporate_id AS customer_id,
+        b2b.invoice_total AS revenue,
+        b2b.company_name AS customer_name
+    FROM b2b_invoices b2b
+"""
+
+[collapse_1]
+
+description = "Complex union - branches converge at the subquery alias and at the top union's left-branch output"
+
+expected = """
+[
+    {
+        "attribute_value": "customer_id",
+        "container_name": "ID__ROOT__active_orders",
+        "container_type": "ROOT",
+        "function_str": null,
+        "next": [
+            {
+                "attribute_value": "customer_id",
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "function_str": null,
+                "next": [
+                    {
+                        "attribute_value": "customer_id",
+                        "container_name": "ID__SUBQUERY__all_tx",
+                        "container_type": "SUBQUERY",
+                        "function_str": null,
+                        "next": [
+                            {
+                                "attribute_value": "customer_id",
+                                "container_name": "ID__STATEMENT__#none#",
+                                "container_type": "STATEMENT",
+                                "function_str": null,
+                                "next": []
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "attribute_value": "total_amount",
+        "container_name": "ID__ROOT__active_orders",
+        "container_type": "ROOT",
+        "function_str": null,
+        "next": [
+            {
+                "attribute_value": "amount",
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "function_str": null,
+                "next": [
+                    {
+                        "attribute_value": "amount",
+                        "container_name": "ID__SUBQUERY__all_tx",
+                        "container_type": "SUBQUERY",
+                        "function_str": null,
+                        "next": [
+                            {
+                                "attribute_value": "revenue",
+                                "container_name": "ID__STATEMENT__#none#",
+                                "container_type": "STATEMENT",
+                                "function_str": null,
+                                "next": []
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "attribute_value": "customer_id",
+        "container_name": "ID__ROOT__archived_orders",
+        "container_type": "ROOT",
+        "function_str": null,
+        "next": [
+            {
+                "attribute_value": "customer_id",
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "function_str": null,
+                "next": [
+                    {
+                        "attribute_value": "customer_id",
+                        "container_name": "ID__SUBQUERY__all_tx",
+                        "container_type": "SUBQUERY",
+                        "function_str": null,
+                        "next": [
+                            {
+                                "attribute_value": "customer_id",
+                                "container_name": "ID__STATEMENT__#none#",
+                                "container_type": "STATEMENT",
+                                "function_str": null,
+                                "next": []
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "attribute_value": "historical_amount",
+        "container_name": "ID__ROOT__archived_orders",
+        "container_type": "ROOT",
+        "function_str": null,
+        "next": [
+            {
+                "attribute_value": "amount",
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "function_str": null,
+                "next": [
+                    {
+                        "attribute_value": "amount",
+                        "container_name": "ID__SUBQUERY__all_tx",
+                        "container_type": "SUBQUERY",
+                        "function_str": null,
+                        "next": [
+                            {
+                                "attribute_value": "revenue",
+                                "container_name": "ID__STATEMENT__#none#",
+                                "container_type": "STATEMENT",
+                                "function_str": null,
+                                "next": []
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "attribute_value": "customer_name",
+        "container_name": "ID__ROOT__customers",
+        "container_type": "ROOT",
+        "function_str": null,
+        "next": [
+            {
+                "attribute_value": "customer_name",
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    },
+    {
+        "attribute_value": "company_name",
+        "container_name": "ID__ROOT__b2b_invoices",
+        "container_type": "ROOT",
+        "function_str": null,
+        "next": [
+            {
+                "attribute_value": "customer_name",
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "function_str": null,
+                "next": [
+                    {
+                        "attribute_value": "customer_name",
+                        "container_name": "ID__STATEMENT__#none#",
+                        "container_type": "STATEMENT",
+                        "function_str": null,
+                        "next": []
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "attribute_value": "corporate_id",
+        "container_name": "ID__ROOT__b2b_invoices",
+        "container_type": "ROOT",
+        "function_str": null,
+        "next": [
+            {
+                "attribute_value": "customer_id",
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "function_str": null,
+                "next": [
+                    {
+                        "attribute_value": "customer_id",
+                        "container_name": "ID__STATEMENT__#none#",
+                        "container_type": "STATEMENT",
+                        "function_str": null,
+                        "next": []
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "attribute_value": "invoice_total",
+        "container_name": "ID__ROOT__b2b_invoices",
+        "container_type": "ROOT",
+        "function_str": null,
+        "next": [
+            {
+                "attribute_value": "revenue",
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "function_str": null,
+                "next": [
+                    {
+                        "attribute_value": "revenue",
+                        "container_name": "ID__STATEMENT__#none#",
+                        "container_type": "STATEMENT",
+                        "function_str": null,
+                        "next": []
+                    }
+                ]
+            }
+        ]
+    }
+]
+"""

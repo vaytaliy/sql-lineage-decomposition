@@ -1,0 +1,22 @@
+attribute_value,container_name,container_type,function_str,next_attribute_value,next_container_name
+billing_city,26__ROOT__orders,ROOT,"CASE WHEN TRY_CAST(FLOOR(total_amount) AS INT) <> 500 THEN UPPER(shipping_city) ELSE billing_city END",target_city,14__SUBQUERY__sub
+shipping_city,26__ROOT__orders,ROOT,"CASE WHEN TRY_CAST(FLOOR(total_amount) AS INT) <> 500 THEN UPPER(shipping_city) ELSE billing_city END",target_city,14__SUBQUERY__sub
+total_amount,26__ROOT__orders,ROOT,CONDITION_ONLY: TRY_CAST(FLOOR(total_amount) AS INT) <> 500,target_city,14__SUBQUERY__sub
+customer_id,26__ROOT__orders,ROOT,,customer_id,14__SUBQUERY__sub
+total_amount,26__ROOT__orders,ROOT,,raw_amount,14__SUBQUERY__sub
+total_amount,26__ROOT__orders,ROOT,,order_amount,14__SUBQUERY__sub
+target_city,14__SUBQUERY__sub,SUBQUERY,LENGTH(target_city),city_len,0__STATEMENT__#none#
+city_len,0__STATEMENT__#none#,STATEMENT,,,
+target_city,14__SUBQUERY__sub,SUBQUERY,"UPPER(CONCAT(target_city, ABS(order_amount)))",formatted_mix,0__STATEMENT__#none#
+order_amount,14__SUBQUERY__sub,SUBQUERY,"UPPER(CONCAT(target_city, ABS(order_amount)))",formatted_mix,0__STATEMENT__#none#
+formatted_mix,0__STATEMENT__#none#,STATEMENT,,,
+target_city,14__SUBQUERY__sub,SUBQUERY,"CASE target_city WHEN 'New York' THEN customer_id ELSE order_amount END",fallback_val,0__STATEMENT__#none#
+customer_id,14__SUBQUERY__sub,SUBQUERY,"CASE target_city WHEN 'New York' THEN customer_id ELSE order_amount END",fallback_val,0__STATEMENT__#none#
+order_amount,14__SUBQUERY__sub,SUBQUERY,"CASE target_city WHEN 'New York' THEN customer_id ELSE order_amount END",fallback_val,0__STATEMENT__#none#
+fallback_val,0__STATEMENT__#none#,STATEMENT,,,
+order_amount,14__SUBQUERY__sub,SUBQUERY,,order_amount,0__STATEMENT__#none#
+order_amount,0__STATEMENT__#none#,STATEMENT,,,
+raw_amount,14__SUBQUERY__sub,SUBQUERY,UNUSED: selected but never consumed,,
+customer_name,34__ROOT__customers,ROOT,,customer_name,0__STATEMENT__#none#
+customer_name,0__STATEMENT__#none#,STATEMENT,,,
+id,34__ROOT__customers,ROOT,JOIN_ON(sub.customer_id = c.id),customer_id,0__STATEMENT__#none#

@@ -1,0 +1,162 @@
+# SQL AST Tree Construction Flow
+
+High-level step-by-step algorithm for transforming SQL into the AST tree structure.
+
+## Phase 1: Parse SQL
+
+**Step 1: Parse Input**
+- Input: SQL string + dialect (e.g., "spark")
+- Action: Parse via sqlglot.parse_one()
+- Output: sqlglot Expression tree
+
+**Step 2: Determine Root Type**
+- IF parsed node is Union/Intersect/Except:
+    - Root type = SET_OPERATOR
+- ELSE IF parsed node is Select:
+    - Root type = STATEMENT
+
+## Phase 2: Build Scope
+
+**Step 3: Extract Table Mappings**
+- For each table in FROM clause:
+    - Map alias -> table_name
+- For each table in JOIN clauses:
+    - Map alias -> table_name
+- For each subquery in FROM/JOIN:
+    - Map subquery_alias -> subquery_alias
+
+**Step 4: Resolve Column Sources**
+- IF column has explicit prefix (table.col):
+    - table_alias = prefix
+- ELIF scope has exactly 1 table:
+    - table_alias = that table's alias
+- ELSE:
+    - table_alias = null
+
+## Phase 3: Process Projections
+
+**Step 5: Build Column Nodes**
+- For each expression in SELECT list:
+    - IF Alias wrapper: extract alias, process inner expression
+    - IF Column: create ATTRIBUTE node
+    - IF Function: create FUNCTION node
+    - IF Case: create FUNCTION node
+    - IF Operator: create FUNCTION node
+    - Skip literals and data types
+
+**Step 6: Handle Functions**
+- Build value string without table aliases
+- Collect inner column names for inner_attributes
+- Recursively process function arguments
+- Add non-null children only
+
+**Step 7: Handle CASE Expressions**
+- Reconstruct CASE SQL without table aliases
+- Add CASE expression child (if present)
+- Add WHEN condition children
+- Add THEN result children
+- Add ELSE child (if present)
+- Skip literal values in conditions
+
+## Phase 4: Process Sources
+
+**Step 8: Extract Tables**
+- For each physical table in FROM and JOIN clauses:
+    - Create TABLE node (value = table name, alias = table alias or "")
+    - Attach to the STATEMENT (FROM) or JOIN node (joined tables)
+- Subqueries in FROM/JOIN produce SUBSELECT nodes instead (Step 9)
+
+**Step 8b: Collect ROOT_ATTRIBUTE Leaves**
+- For each TABLE node, scan the enclosing statement's projections:
+    - ATTRIBUTE projections whose table_alias matches the table
+    - FUNCTION inner_attributes whose qualifier matches the table
+- Create one ROOT_ATTRIBUTE leaf per matched column (deduplicated,
+  sorted by column name) and attach to the TABLE node
+
+**Step 9: Extract Subqueries**
+- Scan FROM clause for subqueries
+- For each subquery found:
+    - Create SUBSELECT node with alias
+    - Recursively process inner SELECT
+    - Add inner projections directly (no STATEMENT wrapper)
+    - Add nested tables, subqueries and joins
+
+**Step 10: Extract Joins**
+- For each JOIN clause:
+    - Create JOIN node
+    - value = full join SQL string
+    - children = the joined TABLE node (empty for subquery joins)
+
+## Phase 5: Handle Set Operations
+
+**Step 11: Branch for UNION/INTERSECT/EXCEPT**
+- Create SET_OPERATOR node with value
+- Build left branch (recurse into left SELECT)
+- Build right branch (recurse into right SELECT)
+- Attach as children to SET_OPERATOR
+
+## Phase 6: Finalize Tree
+
+**Step 12: Assign IDs**
+- Assign sequential IDs starting from 0
+- Set parent_id for all children
+- Root node has parent_id = null
+
+**Step 13: Validate**
+- STATEMENT never inside SUBSELECT
+- SET_OPERATOR only has STATEMENT children
+- SUBSELECT directly contains columns (no STATEMENT wrapper)
+- ATTRIBUTE and ROOT_ATTRIBUTE nodes are always leaf nodes
+- ROOT_ATTRIBUTE parents are always TABLE nodes
+- No literal/data type nodes in tree
+
+## Quick Reference: Node Type Determination
+
+```
+Expression Type          ->  AST Node Type
+-----------------------------------------
+Union/Intersect/Except   ->  SET_OPERATOR
+Select                   ->  STATEMENT
+Subquery                 ->  SUBSELECT
+Column                   ->  ATTRIBUTE
+Table (FROM/JOIN)        ->  TABLE
+Matched source column    ->  ROOT_ATTRIBUTE (child of TABLE)
+Func (scalar)            ->  FUNCTION
+Case                     ->  FUNCTION
+Binary Op (+, =, etc.)   ->  FUNCTION
+Join                     ->  JOIN
+Literal                  ->  SKIP (not in tree)
+DataType                 ->  SKIP (not in tree)
+```
+
+## Quick Reference: Property Assignment
+
+```
+Node Type      value                    alias              table_alias
+---------------------------------------------------------------------------
+STATEMENT      null                     -                  null
+SET_OPERATOR   "UNION"/"INTERSECT"      -                  null
+SUBSELECT      null                     subquery name      -
+FUNCTION       SQL w/o aliases          if AS alias        null
+JOIN           full SQL                 -                  null
+TABLE          table name               alias or ""        -
+ROOT_ATTRIBUTE column name              -                  -
+ATTRIBUTE      column name              if AS alias        resolved source
+```
+
+## Quick Reference: Scope Rules
+
+```
+SELECT sub.col FROM (SELECT col FROM orders) sub
+- outer: table_alias = "sub"
+- inner: table_alias = "orders"
+
+SELECT t.col FROM table t
+- table_alias = "t"
+
+SELECT col FROM table
+- table_alias = "table" (single table auto-resolved)
+
+SELECT col FROM t1, t2
+- table_alias = null (ambiguous)
+```

@@ -1,0 +1,330 @@
+[in]
+
+sql = """
+SELECT 
+    LENGTH(sub.target_city) AS city_len, 
+    sub.order_amount, 
+    UPPER(CONCAT(sub.target_city, ABS(sub.order_amount))) AS formatted_mix, 
+    CASE sub.target_city 
+        WHEN 'New York' THEN sub.customer_id 
+        ELSE sub.order_amount 
+    END AS fallback_val,
+    c.customer_name
+FROM (
+    SELECT 
+        customer_id, 
+        total_amount AS raw_amount, 
+        total_amount AS order_amount, 
+        CASE 
+            WHEN CAST(FLOOR(total_amount) AS INT) = 500 THEN UPPER(shipping_city) 
+            ELSE billing_city 
+        END AS target_city 
+    FROM orders
+) sub
+INNER JOIN customers c 
+    ON sub.customer_id = c.id
+"""
+
+[test_1]
+
+description = "Complex query with subquery, joins, nested functions and CASE"
+
+expected = """
+{
+    "id": 0,
+    "parent_id": null,
+    "node_type": "STATEMENT",
+    "children": [
+        {
+            "id": 1,
+            "parent_id": 0,
+            "node_type": "FUNCTION",
+            "value": "LENGTH(target_city)",
+            "alias": "city_len",
+            "inner_attributes": [
+                "sub.target_city"
+            ],
+            "children": [
+                {
+                    "id": 2,
+                    "parent_id": 1,
+                    "node_type": "ATTRIBUTE",
+                    "value": "target_city",
+                    "table_alias": "sub"
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "parent_id": 0,
+            "node_type": "ATTRIBUTE",
+            "value": "order_amount",
+            "table_alias": "sub"
+        },
+        {
+            "id": 4,
+            "parent_id": 0,
+            "node_type": "FUNCTION",
+            "value": "UPPER(CONCAT(target_city, ABS(order_amount)))",
+            "alias": "formatted_mix",
+            "inner_attributes": [
+                "sub.order_amount",
+                "sub.target_city"
+            ],
+            "children": [
+                {
+                    "id": 5,
+                    "parent_id": 4,
+                    "node_type": "FUNCTION",
+                    "value": "CONCAT(target_city, ABS(order_amount))",
+                    "inner_attributes": [
+                        "sub.order_amount",
+                        "sub.target_city"
+                    ],
+                    "children": [
+                        {
+                            "id": 6,
+                            "parent_id": 5,
+                            "node_type": "ATTRIBUTE",
+                            "value": "target_city",
+                            "table_alias": "sub"
+                        },
+                        {
+                            "id": 7,
+                            "parent_id": 5,
+                            "node_type": "FUNCTION",
+                            "value": "ABS(order_amount)",
+                            "inner_attributes": [
+                                "sub.order_amount"
+                            ],
+                            "children": [
+                                {
+                                    "id": 8,
+                                    "parent_id": 7,
+                                    "node_type": "ATTRIBUTE",
+                                    "value": "order_amount",
+                                    "table_alias": "sub"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": 9,
+            "parent_id": 0,
+            "node_type": "FUNCTION",
+            "value": "CASE target_city WHEN 'New York' THEN customer_id ELSE order_amount END",
+            "alias": "fallback_val",
+            "inner_attributes": [
+                "sub.customer_id",
+                "sub.order_amount",
+                "sub.target_city"
+            ],
+            "children": [
+                {
+                    "id": 10,
+                    "parent_id": 9,
+                    "node_type": "ATTRIBUTE",
+                    "value": "target_city",
+                    "table_alias": "sub"
+                },
+                {
+                    "id": 11,
+                    "parent_id": 9,
+                    "node_type": "ATTRIBUTE",
+                    "value": "customer_id",
+                    "table_alias": "sub"
+                },
+                {
+                    "id": 12,
+                    "parent_id": 9,
+                    "node_type": "ATTRIBUTE",
+                    "value": "order_amount",
+                    "table_alias": "sub"
+                }
+            ]
+        },
+        {
+            "id": 13,
+            "parent_id": 0,
+            "node_type": "ATTRIBUTE",
+            "value": "customer_name",
+            "table_alias": "c"
+        },
+        {
+            "id": 14,
+            "parent_id": 0,
+            "node_type": "SUBSELECT",
+            "alias": "sub",
+            "children": [
+                {
+                    "id": 15,
+                    "parent_id": 14,
+                    "node_type": "ATTRIBUTE",
+                    "value": "customer_id",
+                    "table_alias": "orders"
+                },
+                {
+                    "id": 16,
+                    "parent_id": 14,
+                    "node_type": "ATTRIBUTE",
+                    "value": "total_amount",
+                    "alias": "raw_amount",
+                    "table_alias": "orders"
+                },
+                {
+                    "id": 17,
+                    "parent_id": 14,
+                    "node_type": "ATTRIBUTE",
+                    "value": "total_amount",
+                    "alias": "order_amount",
+                    "table_alias": "orders"
+                },
+                {
+                    "id": 18,
+                    "parent_id": 14,
+                    "node_type": "FUNCTION",
+                    "value": "CASE WHEN TRY_CAST(FLOOR(total_amount), INT) = 500 THEN UPPER(shipping_city) ELSE billing_city END",
+                    "alias": "target_city",
+                    "inner_attributes": [
+                        "billing_city",
+                        "shipping_city",
+                        "total_amount"
+                    ],
+                    "children": [
+                        {
+                            "id": 19,
+                            "parent_id": 18,
+                            "node_type": "FUNCTION",
+                            "value": "TRY_CAST(FLOOR(total_amount), INT) = 500",
+                            "inner_attributes": [
+                                "total_amount"
+                            ],
+                            "children": [
+                                {
+                                    "id": 20,
+                                    "parent_id": 19,
+                                    "node_type": "FUNCTION",
+                                    "value": "TRY_CAST(FLOOR(total_amount), INT)",
+                                    "inner_attributes": [
+                                        "total_amount"
+                                    ],
+                                    "children": [
+                                        {
+                                            "id": 21,
+                                            "parent_id": 20,
+                                            "node_type": "FUNCTION",
+                                            "value": "FLOOR(total_amount)",
+                                            "inner_attributes": [
+                                                "total_amount"
+                                            ],
+                                            "children": [
+                                                {
+                                                    "id": 22,
+                                                    "parent_id": 21,
+                                                    "node_type": "ATTRIBUTE",
+                                                    "value": "total_amount",
+                                                    "table_alias": "orders"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "id": 23,
+                            "parent_id": 18,
+                            "node_type": "FUNCTION",
+                            "value": "UPPER(shipping_city)",
+                            "inner_attributes": [
+                                "shipping_city"
+                            ],
+                            "children": [
+                                {
+                                    "id": 24,
+                                    "parent_id": 23,
+                                    "node_type": "ATTRIBUTE",
+                                    "value": "shipping_city",
+                                    "table_alias": "orders"
+                                }
+                            ]
+                        },
+                        {
+                            "id": 25,
+                            "parent_id": 18,
+                            "node_type": "ATTRIBUTE",
+                            "value": "billing_city",
+                            "table_alias": "orders"
+                        }
+                    ]
+                },
+                {
+                    "id": 26,
+                    "parent_id": 14,
+                    "node_type": "TABLE",
+                    "value": "orders",
+                    "alias": "",
+                    "children": [
+                        {
+                            "id": 30,
+                            "parent_id": 26,
+                            "node_type": "ROOT_ATTRIBUTE",
+                            "value": "billing_city",
+                            "table_alias": ""
+                        },
+                        {
+                            "id": 27,
+                            "parent_id": 26,
+                            "node_type": "ROOT_ATTRIBUTE",
+                            "value": "customer_id"
+                        },
+                        {
+                            "id": 31,
+                            "parent_id": 26,
+                            "node_type": "ROOT_ATTRIBUTE",
+                            "value": "shipping_city",
+                            "table_alias": ""
+                        },
+                        {
+                            "id": 32,
+                            "parent_id": 26,
+                            "node_type": "ROOT_ATTRIBUTE",
+                            "value": "total_amount",
+                            "table_alias": ""
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": 33,
+            "parent_id": 0,
+            "node_type": "JOIN",
+            "value": "INNER JOIN customers AS c ON sub.customer_id = c.id",
+            "children": [
+                {
+                    "id": 34,
+                    "parent_id": 33,
+                    "node_type": "TABLE",
+                    "value": "customers",
+                    "alias": "c",
+                    "children": [
+                        {
+                            "id": 35,
+                            "parent_id": 34,
+                            "node_type": "ROOT_ATTRIBUTE",
+                            "value": "customer_name"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
+"""
+
+[roots]
+expected = ["customers.customer_name", "orders.billing_city", "orders.customer_id", "orders.shipping_city", "orders.total_amount"]

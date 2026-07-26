@@ -1,0 +1,92 @@
+[in]
+
+sql = """
+SELECT customer_id, total_amount AS order_amount FROM orders
+UNION
+SELECT customer_id, historical_amount AS order_amount FROM archived_orders
+"""
+
+[collapse_1]
+
+description = "Simple UNION - right branch chains converge into the left branch's output steps"
+
+expected = """
+[
+    {
+        "attribute_value": "customer_id",
+        "container_name": "ID__ROOT__orders",
+        "container_type": "ROOT",
+        "function_str": null,
+        "next": [
+            {
+                "attribute_value": "customer_id",
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    },
+    {
+        "attribute_value": "total_amount",
+        "container_name": "ID__ROOT__orders",
+        "container_type": "ROOT",
+        "function_str": null,
+        "next": [
+            {
+                "attribute_value": "order_amount",
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    },
+    {
+        "attribute_value": "customer_id",
+        "container_name": "ID__ROOT__archived_orders",
+        "container_type": "ROOT",
+        "function_str": null,
+        "next": [
+            {
+                "attribute_value": "customer_id",
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "function_str": null,
+                "next": [
+                    {
+                        "attribute_value": "customer_id",
+                        "container_name": "ID__STATEMENT__#none#",
+                        "container_type": "STATEMENT",
+                        "function_str": null,
+                        "next": []
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "attribute_value": "historical_amount",
+        "container_name": "ID__ROOT__archived_orders",
+        "container_type": "ROOT",
+        "function_str": null,
+        "next": [
+            {
+                "attribute_value": "order_amount",
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "function_str": null,
+                "next": [
+                    {
+                        "attribute_value": "order_amount",
+                        "container_name": "ID__STATEMENT__#none#",
+                        "container_type": "STATEMENT",
+                        "function_str": null,
+                        "next": []
+                    }
+                ]
+            }
+        ]
+    }
+]
+"""

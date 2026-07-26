@@ -1,0 +1,250 @@
+[in]
+
+sql = """
+SELECT 
+    all_tx.customer_id,
+    all_tx.amount AS revenue,
+    c.customer_name
+FROM (
+    SELECT customer_id, total_amount AS amount FROM active_orders
+    UNION ALL
+    SELECT customer_id, historical_amount AS amount FROM archived_orders
+) all_tx
+INNER JOIN customers c 
+    ON all_tx.customer_id = c.id
+
+UNION ALL
+
+SELECT 
+    b2b.corporate_id AS customer_id,
+    b2b.invoice_total AS revenue,
+    b2b.company_name AS customer_name
+FROM b2b_invoices b2b
+"""
+
+[test_1]
+
+description = "Complex union with subquery containing inner union"
+
+expected = """
+{
+    "id": 0,
+    "parent_id": null,
+    "node_type": "SET_OPERATOR",
+    "value": "UNION ALL",
+    "children": [
+        {
+            "id": 1,
+            "parent_id": 0,
+            "node_type": "STATEMENT",
+            "children": [
+                {
+                    "id": 2,
+                    "parent_id": 1,
+                    "node_type": "ATTRIBUTE",
+                    "value": "customer_id",
+                    "table_alias": "all_tx"
+                },
+                {
+                    "id": 3,
+                    "parent_id": 1,
+                    "node_type": "ATTRIBUTE",
+                    "value": "amount",
+                    "alias": "revenue",
+                    "table_alias": "all_tx"
+                },
+                {
+                    "id": 4,
+                    "parent_id": 1,
+                    "node_type": "ATTRIBUTE",
+                    "value": "customer_name",
+                    "table_alias": "c"
+                },
+                {
+                    "id": 5,
+                    "parent_id": 1,
+                    "node_type": "SUBSELECT",
+                    "alias": "all_tx",
+                    "children": [
+                        {
+                            "id": 6,
+                            "parent_id": 5,
+                            "node_type": "SET_OPERATOR",
+                            "value": "UNION ALL",
+                            "children": [
+                                {
+                                    "id": 7,
+                                    "parent_id": 6,
+                                    "node_type": "STATEMENT",
+                                    "children": [
+                                        {
+                                            "id": 8,
+                                            "parent_id": 7,
+                                            "node_type": "ATTRIBUTE",
+                                            "value": "customer_id",
+                                            "table_alias": "active_orders"
+                                        },
+                                        {
+                                            "id": 9,
+                                            "parent_id": 7,
+                                            "node_type": "ATTRIBUTE",
+                                            "value": "total_amount",
+                                            "alias": "amount",
+                                            "table_alias": "active_orders"
+                                        },
+                                        {
+                                            "id": 10,
+                                            "parent_id": 7,
+                                            "node_type": "TABLE",
+                                            "value": "active_orders",
+                                            "alias": "",
+                                            "children": [
+                                                {
+                                                    "id": 11,
+                                                    "parent_id": 10,
+                                                    "node_type": "ROOT_ATTRIBUTE",
+                                                    "value": "customer_id"
+                                                },
+                                                {
+                                                    "id": 12,
+                                                    "parent_id": 10,
+                                                    "node_type": "ROOT_ATTRIBUTE",
+                                                    "value": "total_amount"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "id": 13,
+                                    "parent_id": 6,
+                                    "node_type": "STATEMENT",
+                                    "children": [
+                                        {
+                                            "id": 14,
+                                            "parent_id": 13,
+                                            "node_type": "ATTRIBUTE",
+                                            "value": "customer_id",
+                                            "table_alias": "archived_orders"
+                                        },
+                                        {
+                                            "id": 15,
+                                            "parent_id": 13,
+                                            "node_type": "ATTRIBUTE",
+                                            "value": "historical_amount",
+                                            "alias": "amount",
+                                            "table_alias": "archived_orders"
+                                        },
+                                        {
+                                            "id": 16,
+                                            "parent_id": 13,
+                                            "node_type": "TABLE",
+                                            "value": "archived_orders",
+                                            "alias": "",
+                                            "children": [
+                                                {
+                                                    "id": 17,
+                                                    "parent_id": 16,
+                                                    "node_type": "ROOT_ATTRIBUTE",
+                                                    "value": "customer_id"
+                                                },
+                                                {
+                                                    "id": 18,
+                                                    "parent_id": 16,
+                                                    "node_type": "ROOT_ATTRIBUTE",
+                                                    "value": "historical_amount"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": 19,
+                    "parent_id": 1,
+                    "node_type": "JOIN",
+                    "value": "INNER JOIN customers AS c ON all_tx.customer_id = c.id",
+                    "children": [
+                        {
+                            "id": 20,
+                            "parent_id": 19,
+                            "node_type": "TABLE",
+                            "value": "customers",
+                            "alias": "c",
+                            "children": [
+                                {
+                                    "id": 21,
+                                    "parent_id": 20,
+                                    "node_type": "ROOT_ATTRIBUTE",
+                                    "value": "customer_name"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": 22,
+            "parent_id": 0,
+            "node_type": "STATEMENT",
+            "children": [
+                {
+                    "id": 23,
+                    "parent_id": 22,
+                    "node_type": "ATTRIBUTE",
+                    "value": "corporate_id",
+                    "alias": "customer_id",
+                    "table_alias": "b2b"
+                },
+                {
+                    "id": 24,
+                    "parent_id": 22,
+                    "node_type": "ATTRIBUTE",
+                    "value": "invoice_total",
+                    "alias": "revenue",
+                    "table_alias": "b2b"
+                },
+                {
+                    "id": 25,
+                    "parent_id": 22,
+                    "node_type": "ATTRIBUTE",
+                    "value": "company_name",
+                    "alias": "customer_name",
+                    "table_alias": "b2b"
+                },
+                {
+                    "id": 26,
+                    "parent_id": 22,
+                    "node_type": "TABLE",
+                    "value": "b2b_invoices",
+                    "alias": "b2b",
+                    "children": [
+                        {
+                            "id": 29,
+                            "parent_id": 26,
+                            "node_type": "ROOT_ATTRIBUTE",
+                            "value": "company_name"
+                        },
+                        {
+                            "id": 27,
+                            "parent_id": 26,
+                            "node_type": "ROOT_ATTRIBUTE",
+                            "value": "corporate_id"
+                        },
+                        {
+                            "id": 28,
+                            "parent_id": 26,
+                            "node_type": "ROOT_ATTRIBUTE",
+                            "value": "invoice_total"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
+"""

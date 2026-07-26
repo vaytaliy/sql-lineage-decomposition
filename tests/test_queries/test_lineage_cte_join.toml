@@ -1,0 +1,70 @@
+[in]
+
+sql = """
+WITH cte AS (SELECT customer_id, total_amount AS order_amount FROM orders)
+SELECT cte.order_amount, c.customer_name
+FROM cte
+INNER JOIN customers c ON cte.customer_id = c.id
+"""
+
+[lineage_1]
+
+description = "CTE with JOIN - CTE lineage coexists with regular table lineage"
+
+expected = """
+[
+    {
+        "container_name": "ID__ROOT__orders",
+        "container_type": "ROOT",
+        "attribute_value": "customer_id",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__SUBQUERY__cte",
+                "container_type": "SUBQUERY",
+                "attribute_value": "customer_id",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    },
+    {
+        "container_name": "ID__ROOT__orders",
+        "container_type": "ROOT",
+        "attribute_value": "total_amount",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__SUBQUERY__cte",
+                "container_type": "SUBQUERY",
+                "attribute_value": "order_amount",
+                "function_str": null,
+                "next": [
+                    {
+                        "container_name": "ID__STATEMENT__#none#",
+                        "container_type": "STATEMENT",
+                        "attribute_value": "order_amount",
+                        "function_str": null,
+                        "next": []
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "container_name": "ID__ROOT__customers",
+        "container_type": "ROOT",
+        "attribute_value": "customer_name",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "customer_name",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    }
+]
+"""

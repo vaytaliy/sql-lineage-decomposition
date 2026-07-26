@@ -1,0 +1,54 @@
+[in]
+
+sql = """
+SELECT sub.order_amount, c.customer_name 
+FROM (SELECT total_amount AS order_amount FROM orders) sub
+INNER JOIN customers c ON sub.customer_id = c.id
+"""
+
+[lineage_1]
+
+description = "Subquery lineage for total_amount through subquery alias"
+
+expected = """
+[
+    {
+        "container_name": "ID__ROOT__orders",
+        "container_type": "ROOT",
+        "attribute_value": "total_amount",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__SUBQUERY__sub",
+                "container_type": "SUBQUERY",
+                "attribute_value": "order_amount",
+                "function_str": null,
+                "next": [
+                    {
+                        "container_name": "ID__STATEMENT__#none#",
+                        "container_type": "STATEMENT",
+                        "attribute_value": "order_amount",
+                        "function_str": null,
+                        "next": []
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "container_name": "ID__ROOT__customers",
+        "container_type": "ROOT",
+        "attribute_value": "customer_name",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "customer_name",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    }
+]
+"""

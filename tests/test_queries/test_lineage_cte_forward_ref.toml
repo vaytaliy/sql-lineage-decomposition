@@ -1,0 +1,70 @@
+[in]
+
+sql = """
+WITH cte1 AS (SELECT id FROM a),
+     cte2 AS (SELECT cte1.id, b.val FROM cte1 JOIN b ON cte1.id = b.id)
+SELECT cte2.id, cte2.val FROM cte2
+"""
+
+[lineage_1]
+
+description = "Multiple CTEs with forward reference - cte2 references cte1"
+
+expected = """
+[
+    {
+        "container_name": "ID__ROOT__a",
+        "container_type": "ROOT",
+        "attribute_value": "id",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__SUBQUERY__cte1",
+                "container_type": "SUBQUERY",
+                "attribute_value": "id",
+                "function_str": null,
+                "next": [
+                    {
+                        "container_name": "ID__SUBQUERY__cte2",
+                        "container_type": "SUBQUERY",
+                        "attribute_value": "id",
+                        "function_str": null,
+                        "next": [
+                            {
+                                "container_name": "ID__STATEMENT__#none#",
+                                "container_type": "STATEMENT",
+                                "attribute_value": "id",
+                                "function_str": null,
+                                "next": []
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "container_name": "ID__ROOT__b",
+        "container_type": "ROOT",
+        "attribute_value": "val",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__SUBQUERY__cte2",
+                "container_type": "SUBQUERY",
+                "attribute_value": "val",
+                "function_str": null,
+                "next": [
+                    {
+                        "container_name": "ID__STATEMENT__#none#",
+                        "container_type": "STATEMENT",
+                        "attribute_value": "val",
+                        "function_str": null,
+                        "next": []
+                    }
+                ]
+            }
+        ]
+    }
+]
+"""

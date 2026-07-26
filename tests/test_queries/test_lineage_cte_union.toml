@@ -1,0 +1,110 @@
+[in]
+
+sql = """
+WITH all_tx AS (
+    SELECT customer_id, amount FROM active_orders
+    UNION ALL
+    SELECT customer_id, amount FROM archived_orders
+)
+SELECT all_tx.customer_id, all_tx.amount
+FROM all_tx
+"""
+
+[lineage_1]
+
+description = "CTE containing UNION - inner SET_OPERATOR preserved inside inlined subquery"
+
+expected = """
+[
+    {
+        "container_name": "ID__SUBQUERY__all_tx",
+        "container_type": "SUBQUERY",
+        "attribute_value": "customer_id",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "customer_id",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    },
+    {
+        "container_name": "ID__SUBQUERY__all_tx",
+        "container_type": "SUBQUERY",
+        "attribute_value": "amount",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "amount",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    },
+    {
+        "container_name": "ID__ROOT__active_orders",
+        "container_type": "ROOT",
+        "attribute_value": "amount",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "amount",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    },
+    {
+        "container_name": "ID__ROOT__active_orders",
+        "container_type": "ROOT",
+        "attribute_value": "customer_id",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "customer_id",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    },
+    {
+        "container_name": "ID__ROOT__archived_orders",
+        "container_type": "ROOT",
+        "attribute_value": "amount",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "amount",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    },
+    {
+        "container_name": "ID__ROOT__archived_orders",
+        "container_type": "ROOT",
+        "attribute_value": "customer_id",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "customer_id",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    }
+]
+"""

@@ -1,0 +1,75 @@
+[in]
+
+sql = """
+SELECT o.customer_id, c.customer_name FROM orders o 
+INNER JOIN customers c ON o.id = c.order_id
+"""
+
+[test_1]
+
+description = "Simple join without subquery"
+
+expected = """
+{
+    "id": 0,
+    "parent_id": null,
+    "node_type": "STATEMENT",
+    "children": [
+        {
+            "id": 1,
+            "parent_id": 0,
+            "node_type": "ATTRIBUTE",
+            "value": "customer_id",
+            "table_alias": "o"
+        },
+        {
+            "id": 2,
+            "parent_id": 0,
+            "node_type": "ATTRIBUTE",
+            "value": "customer_name",
+            "table_alias": "c"
+        },
+        {
+            "id": 3,
+            "parent_id": 0,
+            "node_type": "TABLE",
+            "value": "orders",
+            "alias": "o",
+            "children": [
+                {
+                    "id": 4,
+                    "parent_id": 3,
+                    "node_type": "ROOT_ATTRIBUTE",
+                    "value": "customer_id"
+                }
+            ]
+        },
+        {
+            "id": 5,
+            "parent_id": 0,
+            "node_type": "JOIN",
+            "value": "INNER JOIN customers AS c ON o.id = c.order_id",
+            "children": [
+                {
+                    "id": 6,
+                    "parent_id": 5,
+                    "node_type": "TABLE",
+                    "value": "customers",
+                    "alias": "c",
+                    "children": [
+                        {
+                            "id": 7,
+                            "parent_id": 6,
+                            "node_type": "ROOT_ATTRIBUTE",
+                            "value": "customer_name"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
+"""
+
+[roots]
+expected = ["customers.customer_name", "orders.customer_id"]

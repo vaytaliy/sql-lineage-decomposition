@@ -1,0 +1,44 @@
+[in]
+
+sql = """
+SELECT customer_id, total_amount AS order_amount FROM orders
+"""
+
+[lineage_1]
+
+description = "Basic SELECT lineage for customer_id"
+
+expected = """
+[
+    {
+        "container_name": "ID__ROOT__orders",
+        "container_type": "ROOT",
+        "attribute_value": "customer_id",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "customer_id",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    },
+    {
+        "container_name": "ID__ROOT__orders",
+        "container_type": "ROOT",
+        "attribute_value": "total_amount",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "order_amount",
+                "function_str": null,
+                "next": []
+            }
+        ]
+    }
+]
+"""

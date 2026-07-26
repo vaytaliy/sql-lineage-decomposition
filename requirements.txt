@@ -1,0 +1,10 @@
+astroid==4.0.4
+colorama==0.4.6
+dill==0.4.1
+isort==8.0.1
+mccabe==0.7.0
+pillow==12.3.0
+platformdirs==4.9.6
+pylint==4.0.5
+sqlglot==30.8.0
+tomlkit==0.15.0

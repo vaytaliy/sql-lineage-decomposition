@@ -1,0 +1,29 @@
+[in]
+
+sql = """
+SELECT CAST(total_amount AS INT) AS amount FROM orders
+"""
+
+[lineage_1]
+
+description = "Function lineage for CAST with alias"
+
+expected = """
+[
+    {
+        "container_name": "ID__ROOT__orders",
+        "container_type": "ROOT",
+        "attribute_value": "total_amount",
+        "function_str": null,
+        "next": [
+            {
+                "container_name": "ID__STATEMENT__#none#",
+                "container_type": "STATEMENT",
+                "attribute_value": "amount",
+                "function_str": "TRY_CAST(total_amount, INT)",
+                "next": []
+            }
+        ]
+    }
+]
+"""

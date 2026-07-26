@@ -1,0 +1,209 @@
+[in]
+
+sql = """
+SELECT 
+    LENGTH(sub.target_city) AS city_len, 
+    UPPER(CONCAT(sub.target_city, ABS(sub.order_amount))) AS formatted_mix,
+    CASE sub.target_city 
+        WHEN 'New York' THEN sub.customer_id 
+        ELSE sub.order_amount 
+    END AS fallback_val
+FROM (
+    SELECT customer_id, total_amount AS order_amount, shipping_city AS target_city FROM orders
+) sub
+INNER JOIN customers c ON sub.customer_id = c.id
+"""
+
+[test_1]
+
+description = "Nested functions and CASE expression"
+
+expected = """
+{
+    "id": 0,
+    "parent_id": null,
+    "node_type": "STATEMENT",
+    "children": [
+        {
+            "id": 1,
+            "parent_id": 0,
+            "node_type": "FUNCTION",
+            "value": "LENGTH(target_city)",
+            "alias": "city_len",
+            "inner_attributes": [
+                "sub.target_city"
+            ],
+            "children": [
+                {
+                    "id": 2,
+                    "parent_id": 1,
+                    "node_type": "ATTRIBUTE",
+                    "value": "target_city",
+                    "table_alias": "sub"
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "parent_id": 0,
+            "node_type": "FUNCTION",
+            "value": "UPPER(CONCAT(target_city, ABS(order_amount)))",
+            "alias": "formatted_mix",
+            "inner_attributes": [
+                "sub.order_amount",
+                "sub.target_city"
+            ],
+            "children": [
+                {
+                    "id": 4,
+                    "parent_id": 3,
+                    "node_type": "FUNCTION",
+                    "value": "CONCAT(target_city, ABS(order_amount))",
+                    "inner_attributes": [
+                        "sub.order_amount",
+                        "sub.target_city"
+                    ],
+                    "children": [
+                        {
+                            "id": 5,
+                            "parent_id": 4,
+                            "node_type": "ATTRIBUTE",
+                            "value": "target_city",
+                            "table_alias": "sub"
+                        },
+                        {
+                            "id": 6,
+                            "parent_id": 4,
+                            "node_type": "FUNCTION",
+                            "value": "ABS(order_amount)",
+                            "inner_attributes": [
+                                "sub.order_amount"
+                            ],
+                            "children": [
+                                {
+                                    "id": 7,
+                                    "parent_id": 6,
+                                    "node_type": "ATTRIBUTE",
+                                    "value": "order_amount",
+                                    "table_alias": "sub"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": 8,
+            "parent_id": 0,
+            "node_type": "FUNCTION",
+            "value": "CASE target_city WHEN 'New York' THEN customer_id ELSE order_amount END",
+            "alias": "fallback_val",
+            "inner_attributes": [
+                "sub.customer_id",
+                "sub.order_amount",
+                "sub.target_city"
+            ],
+            "children": [
+                {
+                    "id": 9,
+                    "parent_id": 8,
+                    "node_type": "ATTRIBUTE",
+                    "value": "target_city",
+                    "table_alias": "sub"
+                },
+                {
+                    "id": 10,
+                    "parent_id": 8,
+                    "node_type": "ATTRIBUTE",
+                    "value": "customer_id",
+                    "table_alias": "sub"
+                },
+                {
+                    "id": 11,
+                    "parent_id": 8,
+                    "node_type": "ATTRIBUTE",
+                    "value": "order_amount",
+                    "table_alias": "sub"
+                }
+            ]
+        },
+        {
+            "id": 12,
+            "parent_id": 0,
+            "node_type": "SUBSELECT",
+            "alias": "sub",
+            "children": [
+                {
+                    "id": 13,
+                    "parent_id": 12,
+                    "node_type": "ATTRIBUTE",
+                    "value": "customer_id",
+                    "table_alias": "orders"
+                },
+                {
+                    "id": 14,
+                    "parent_id": 12,
+                    "node_type": "ATTRIBUTE",
+                    "value": "total_amount",
+                    "alias": "order_amount",
+                    "table_alias": "orders"
+                },
+                {
+                    "id": 15,
+                    "parent_id": 12,
+                    "node_type": "ATTRIBUTE",
+                    "value": "shipping_city",
+                    "alias": "target_city",
+                    "table_alias": "orders"
+                },
+                {
+                    "id": 16,
+                    "parent_id": 12,
+                    "node_type": "TABLE",
+                    "value": "orders",
+                    "alias": "",
+                    "children": [
+                        {
+                            "id": 17,
+                            "parent_id": 16,
+                            "node_type": "ROOT_ATTRIBUTE",
+                            "value": "customer_id"
+                        },
+                        {
+                            "id": 19,
+                            "parent_id": 16,
+                            "node_type": "ROOT_ATTRIBUTE",
+                            "value": "shipping_city"
+                        },
+                        {
+                            "id": 18,
+                            "parent_id": 16,
+                            "node_type": "ROOT_ATTRIBUTE",
+                            "value": "total_amount"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": 20,
+            "parent_id": 0,
+            "node_type": "JOIN",
+            "value": "INNER JOIN customers AS c ON sub.customer_id = c.id",
+            "children": [
+                {
+                    "id": 21,
+                    "parent_id": 20,
+                    "node_type": "TABLE",
+                    "value": "customers",
+                    "alias": "c"
+                }
+            ]
+        }
+    ]
+}
+"""
+
+[roots]
+expected = ["orders.customer_id", "orders.shipping_city", "orders.total_amount"]

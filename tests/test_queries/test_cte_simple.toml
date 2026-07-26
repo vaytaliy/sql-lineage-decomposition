@@ -1,0 +1,80 @@
+[in]
+
+sql = """
+WITH cte AS (SELECT id, name FROM users)
+SELECT id, name FROM cte
+"""
+
+[test_1]
+
+description = "CTE is transparently converted to a SUBSELECT node"
+
+expected = """
+{
+    "id": 0,
+    "parent_id": null,
+    "node_type": "STATEMENT",
+    "children": [
+        {
+            "id": 1,
+            "parent_id": 0,
+            "node_type": "ATTRIBUTE",
+            "value": "id",
+            "table_alias": "cte"
+        },
+        {
+            "id": 2,
+            "parent_id": 0,
+            "node_type": "ATTRIBUTE",
+            "value": "name",
+            "table_alias": "cte"
+        },
+        {
+            "id": 3,
+            "parent_id": 0,
+            "node_type": "SUBSELECT",
+            "alias": "cte",
+            "children": [
+                {
+                    "id": 4,
+                    "parent_id": 3,
+                    "node_type": "ATTRIBUTE",
+                    "value": "id",
+                    "table_alias": "users"
+                },
+                {
+                    "id": 5,
+                    "parent_id": 3,
+                    "node_type": "ATTRIBUTE",
+                    "value": "name",
+                    "table_alias": "users"
+                },
+                {
+                    "id": 6,
+                    "parent_id": 3,
+                    "node_type": "TABLE",
+                    "value": "users",
+                    "alias": "",
+                    "children": [
+                        {
+                            "id": 7,
+                            "parent_id": 6,
+                            "node_type": "ROOT_ATTRIBUTE",
+                            "value": "id"
+                        },
+                        {
+                            "id": 8,
+                            "parent_id": 6,
+                            "node_type": "ROOT_ATTRIBUTE",
+                            "value": "name"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
+"""
+
+[roots]
+expected = ["users.id", "users.name"]
